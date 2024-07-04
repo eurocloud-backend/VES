@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<div class="container mt-5">
+    <!-- Textbox for Vehicle Registration Number with Bootstrap styling -->
+    <div class="input-group mb-3">
+        <input type="text" id="registrationNumber" class="form-control" placeholder="Enter Vehicle Registration Number" aria-label="Vehicle Registration Number" aria-describedby="button-addon2">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="button-addon2" onclick="sendVehicleEnquiry()">Send Vehicle Enquiry</button>
+        </div>
+    </div>
+
+    <!-- Container to Display the Result with Bootstrap styling -->
+    <div id="enquiryResult" class="mt-3"></div>
+</div>
+
+<script>
+    function sendVehicleEnquiry() {
+        var registrationNumber = document.getElementById('registrationNumber').value; // Get the value from the textbox
+        fetch('/Home/VehicleEnquiry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ registrationNumber: registrationNumber }) // Use the value in the request
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                // Clear previous results
+                const resultContainer = document.getElementById('enquiryResult');
+                resultContainer.innerHTML = '';
+                resultContainer.className += " p-3 bg-light border";
+
+                // Create and append a div for each property in the response data with Bootstrap styling
+                Object.keys(data).forEach(key => {
+                    const div = document.createElement('div');
+                    div.className = "p-2";
+                    div.textContent = `${key}: ${data[key]}`;
+                    resultContainer.appendChild(div);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('enquiryResult').textContent = 'Failed to load data: ' + error.message;
+                document.getElementById('enquiryResult').className += " p-3 bg-danger text-white";
+            });
+    }
+
+    // Event listener for the Enter key press in the textbox
+    document.getElementById('registrationNumber').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') { // Check if the pressed key is Enter
+            sendVehicleEnquiry(); // Call the function to send the enquiry
+        }
+    });
+</script>
